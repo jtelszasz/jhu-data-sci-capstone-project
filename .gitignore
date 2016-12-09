@@ -1,0 +1,13 @@
+*.Rproj.user
+*.Rhistory
+*.RData
+*.Ruserdata
+
+*.pyc
+*.sublime-workspace
+*.idea
+*.ipynb_checkpoints
+*.zip
+
+/final
+/final*	

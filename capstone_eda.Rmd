@@ -1,0 +1,121 @@
+---
+title: "Data Cleaning"
+author: "Justin Elszasz"
+date: "August 23, 2016"
+output: html_document
+---
+
+# Note: Laptop crashed 11/30 and was not backed up for 2 weeks - Rmd file lost most edits - see Rpubs for exploratory analysis and code.
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r loaddata, cache=TRUE, echo=FALSE}
+library(caret)
+library(dplyr)
+library(data.table)
+
+filename <- "final/en_US/en_US.blogs.txt"
+con <- file(filename, "r")
+blines <- readLines(con)
+close(con)
+
+filename <- "final/en_US/en_US.twitter.txt"
+con <- file(filename, "r")
+tlines <- readLines(con)
+close(con)
+
+filename <- "final/en_US/en_US.news.txt"
+con <- file(filename, "r")
+nlines <- readLines(con)
+close(con)
+```
+
+```{r some_funcs, echo=FALSE}
+get_train_ind <- function(lines, split){
+        inTrain <- createDataPartition(lines, p=split)[[1]]
+        return(inTrain)
+}
+        
+get_all_words <- function(lines){
+        words <- unlist(strsplit(lines, "[[:space:]]+"))
+        return(words)
+}
+
+sort_words_freq <- function(words){
+        freq_sort <- sort(table(words), decreasing = TRUE)
+        return(freq_sort)
+}
+
+get_2grams <- function(words){
+        pairs <- paste(words, lead(words, 1))
+}
+
+get_3grams <- function(words){
+        pairs <- paste(words, lead(words, 1), lead(words,2))
+}
+```
+
+```{r summ, cache=TRUE}
+bwords <- get_all_words(blines)
+nwords <- get_all_words(nlines)
+twords <- get_all_words(tlines)
+
+Nlines <- c(length(blines), length(nlines), length(tlines))
+Nwords <- c(length(bwords), length(nwords), length(twords))
+Nunique <- c(length(unique(bwords)), length(unique(nwords)), length(unique(twords)))
+
+summary_table <- data.frame(Nlines, 
+                            Nwords,
+                            Nunique,
+                            row.names=c("blogs","news","twitter"))
+
+print(summary_table)
+```
+
+```{r samples, cache=TRUE}
+sample_percent <- 0.1
+bsample <- sample(blines, sample_percent * length(blines))
+nsample <- sample(nlines, sample_percent * length(nlines))
+tsample <- sample(tlines, sample_percent * length(tlines))
+remove(blines); remove(nlines); remove(tlines)
+```
+
+```{r grams, cache=TRUE, echo=FALSE}
+bwords <- get_all_words(bsample)
+nwords <- get_all_words(nsample)
+twords <- get_all_words(tsample)
+
+bwords_2grams <- get_2grams(bwords)
+bwords_3grams <- get_3grams(bwords)
+nwords_2grams <- get_2grams(nwords)
+nwords_3grams <- get_3grams(nwords)
+twords_2grams <- get_2grams(twords)
+twords_3grams <- get_3grams(twords)
+
+bwords_top_freq <- sort_words_freq(bwords)
+bwords_2grams_top_freq <- sort_words_freq(bwords_2grams)
+bwords_3grams_top_freq <- sort_words_freq(bwords_3grams)
+nwords_top_freq <- sort_words_freq(nwords)
+nwords_2grams_top_freq <- sort_words_freq(nwords_2grams)
+nwords_3grams_top_freq <- sort_words_freq(nwords_3grams)
+twords_top_freq <- sort_words_freq(twords)
+twords_2grams_top_freq <- sort_words_freq(twords_2grams)
+twords_3grams_top_freq <- sort_words_freq(twords_3grams)
+```
+
+```{r}
+
+print(bwords_2grams_top_freq[1:10])
+print(bwords_3grams_top_freq[1:10])
+
+#c(data.frame(blogs_top_word_freq[1:10]), data.frame(blogs_top_word_freq[11:20]))
+#print(data.frame(blogs_top_word_freq[1:10]/length(blogs_words)))
+```
